@@ -1,8 +1,5 @@
-from flask import Flask, redirect, request
+from flask import Flask, redirect, request, url_for
 from flask_oauthlib.client import OAuth
-import requests
-import pandas as pd 
-
 
 app = Flask(__name__)
 
@@ -39,12 +36,30 @@ def callback():
 
     if resp is None:
         return 'Acceso denegado: Razón: {} error: {}'.format(
-            request.args['error_reason'],
+            request.args['error_reason'], 
             request.args['error_description']
         )
     access_token = resp['access_token']
 
-    return 'Token de acceso obtenido: {}'.format(access_token)
+    #access_token .txt 
+
+    with open('access_token.txt', 'w') as file:
+        file.write(access_token)
+
+    # return 'Token de acceso obtenido: {}'.format(access_token)
+    return redirect(url_for('home', access_token=access_token))
+
+@app.route('/')
+def home():
+    
+    with open('access_token.txt', 'r') as file:
+        access_token = file.read()
+
+    if  access_token:
+        return 'Token access: {}'.format(access_token)
+    else:
+        return 'Please, authorize your application in <a href="/login">login</a>'
+    
 
 
 if __name__ == '__main__':
